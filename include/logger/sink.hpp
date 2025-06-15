@@ -49,7 +49,6 @@ public:
     static FileSink* get(const std::string &filename);
     void write(const std::string &message) override;
 
-
     ~FileSink()
     {
         if(file_.is_open())

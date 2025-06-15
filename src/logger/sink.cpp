@@ -35,7 +35,10 @@ void FileSink::write(const std::string &message)
 
 FileSink* FileSink::get(const std::string &filename)
 {
+    static std::mutex mtx_;
     static std::unordered_map<std::string, std::unique_ptr<FileSink>> m;
+
+    std::lock_guard<std::mutex> lock(mtx_);
     if(m.find(filename) == m.end()) {
         m[filename] = std::move(std::unique_ptr<FileSink>(new FileSink(filename)));
     }
