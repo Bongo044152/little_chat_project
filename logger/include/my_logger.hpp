@@ -25,11 +25,11 @@ public:
 
     // -- quick log method -- //
 
-    void debug(const std::string &message) { log(LogLevel::DEBUG, message); }
-    void info(const std::string &message) { log(LogLevel::INFO, message); }
-    void warning(const std::string &message) { log(LogLevel::WARNING, message); }
-    void error(const std::string &message) { log(LogLevel::ERROR, message); }
-    void critical(const std::string &message) { log(LogLevel::CRITICAL, message); }
+    void debug(const std::string &message) { log(LogLevel::Debug, message); }
+    void info(const std::string &message) { log(LogLevel::Info, message); }
+    void warning(const std::string &message) { log(LogLevel::Warning, message); }
+    void error(const std::string &message) { log(LogLevel::Error, message); }
+    void critical(const std::string &message) { log(LogLevel::Critical, message); }
 
     // -- setter -- //
 
@@ -55,7 +55,7 @@ public:
 
 private:
     // -- constructor -- //
-    Logger() : formatter_(std::make_unique<BasicFormatter>()), lvl_(LogLevel::DEBUG) {}
+    Logger() : formatter_(std::make_unique<BasicFormatter>()), lvl_(LogLevel::Debug) {}
 
     // -- member variable -- //
     std::vector<Sink*> sinks_;  // sinks

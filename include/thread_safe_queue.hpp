@@ -1,4 +1,4 @@
-// queue for MT-Safe
+// thread_safe_queue.hpp
 #pragma once
 
 // -- headers for thread -- //

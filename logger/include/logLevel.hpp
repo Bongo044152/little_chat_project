@@ -4,9 +4,9 @@
 
 enum class LogLevel
 {
-    DEBUG,
-    INFO,
-    WARNING,
-    ERROR,
-    CRITICAL
+    Debug,
+    Info,
+    Warning,
+    Error,
+    Critical
 };

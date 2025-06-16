@@ -20,15 +20,15 @@ static std::string _LogLevel_to_string(LogLevel lev)
 {
     switch (lev)
     {
-    case LogLevel::DEBUG:
+    case LogLevel::Debug:
         return "DEBUG";
-    case LogLevel::INFO:
+    case LogLevel::Info:
         return "INFO";
-    case LogLevel::WARNING:
+    case LogLevel::Warning:
         return "WARNING";
-    case LogLevel::ERROR:
+    case LogLevel::Error:
         return "ERROR";
-    case LogLevel::CRITICAL:
+    case LogLevel::Critical:
         return "CRITICAL";
     default:
         return "UNKNOWN";
