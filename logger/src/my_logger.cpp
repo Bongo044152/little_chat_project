@@ -11,7 +11,7 @@
 void Logger::log(LogLevel lvl, const std::string &message)
 {
     std::lock_guard<std::mutex> lock(mtx_);
-    if(!formater_ || sinks_.empty()) throw std::runtime_error("formater and sink are needed!");
+    if(!formatter_ || sinks_.empty()) throw std::runtime_error("formatter and sink are needed!");
     if(lvl < lvl_) return;
 
     Record record(
@@ -21,7 +21,7 @@ void Logger::log(LogLevel lvl, const std::string &message)
         std::this_thread::get_id()
     );
 
-    const std::string formatted = formater_->format(record);
+    const std::string formatted = formatter_->format(record);
     for(const auto &it : sinks_) {
         it->write(formatted);
     }
@@ -33,10 +33,10 @@ void Logger::addSink(Sink *sink_)
     sinks_.push_back(sink_);
 }
 
-void Logger::setFormater(std::unique_ptr<Formater> fmt_)
+void Logger::setFormatter(std::unique_ptr<Formatter> fmt_)
 {
     std::lock_guard<std::mutex> lock(mtx_);
-    formater_ = std::move(fmt_);
+    formatter_ = std::move(fmt_);
 }
 
 void Logger::setLevel(LogLevel lvl)

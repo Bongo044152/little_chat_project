@@ -7,7 +7,6 @@
 
 #include <fstream>
 
-#include "logger/sink.hpp"
 #include "sink.hpp"
 
 // TerminalSink

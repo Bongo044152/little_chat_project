@@ -4,7 +4,7 @@
 
 #include "logLevel.hpp"
 #include "sink.hpp"
-#include "formater.hpp"
+#include "formatter.hpp"
 #include "record.hpp"
 
 #include <vector>
@@ -35,7 +35,7 @@ public:
 
     void addSink(Sink *sink_);
     
-    void setFormater(std::unique_ptr<Formater> fmt_);
+    void setFormatter(std::unique_ptr<Formatter> fmt_);
 
     void setLevel(LogLevel lvl);
 
@@ -55,11 +55,11 @@ public:
 
 private:
     // -- constructor -- //
-    Logger() : formater_(std::make_unique<BasicFormater>()), lvl_(LogLevel::DEBUG) {}
+    Logger() : formatter_(std::make_unique<BasicFormatter>()), lvl_(LogLevel::DEBUG) {}
 
     // -- member variable -- //
     std::vector<Sink*> sinks_;  // sinks
-    std::unique_ptr<Formater> formater_;        // formater
+    std::unique_ptr<Formatter> formatter_;        // formatter
     LogLevel lvl_;      // level for Logger
     std::mutex mtx_;    // avoid race condition
 

@@ -1,3 +1,4 @@
+# main
 cmake_minimum_required(VERSION 3.10)
 
 project(
@@ -10,7 +11,9 @@ project(
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 17)
 
-file(GLOB file_lists ${CMAKE_SOURCE_DIR}/src/*.cpp ${CMAKE_SOURCE_DIR}/src/logger/*.cpp)
+add_subdirectory(logger)
 
+file(GLOB file_lists ${CMAKE_SOURCE_DIR}/src/*.cpp)
 add_executable(main ${file_lists} main.cpp)
-target_include_directories(main PUBLIC ./include ./include/logger)
+target_include_directories(main PUBLIC ./include .)
+target_link_libraries(main PRIVATE logger)

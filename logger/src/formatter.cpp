@@ -1,6 +1,6 @@
-// impl for formater.hpp
+// impl for formatter.hpp
 
-#include "logger/formater.hpp"
+#include "formatter.hpp"
 
 #include <string>
 #include <sstream>
@@ -35,9 +35,9 @@ static std::string _LogLevel_to_string(LogLevel lev)
     }
 }
 
-// BasicFormater
+// BasicFormatter
 
-std::string BasicFormater::format(const Record &record)
+std::string BasicFormatter::format(const Record &record)
 {
     using std::chrono::system_clock;
     std::time_t now_c = system_clock::to_time_t(record.recorded_time);
