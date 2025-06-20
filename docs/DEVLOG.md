@@ -101,10 +101,10 @@
     1. ServerSocket 向 Server 做 polling
     2. ServerSocket 做 callback ( Server 提供 callback function ): 對於這個方案，教授建議我們加上 time limit 以免 callback 過程中出現問題
 
-## 🗓️ 6/21：
+## 🗓️ 6/21：重大更新!
 
-* 更改代碼架構，更近 cmake 的邏輯
+* 更改代碼架構
   * 將 logger 與 queue 獨立到 lib 中
   * 新增 cmake 資料夾表示第三方 library
   * 使用 cmake 管理 library
-  * 新增正在實驗中的 server 與 client 邏輯 -> 位於 src 與 include
+  * 新增正在實驗中的 server 與 client 邏輯 -> 添加到 src 與 include
