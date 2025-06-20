@@ -10,13 +10,16 @@
 
 // -- helper function -- //
 
+namespace
+{
+
 /**
  * @brief Convert LogLevel enum to string representation.
  * 
  * @param lev The log level to convert.
  * @return std::string The corresponding string.
  */
-static std::string _LogLevel_to_string(LogLevel lev)
+std::string _LogLevel_to_string(LogLevel lev)
 {
     switch (lev)
     {
@@ -34,6 +37,8 @@ static std::string _LogLevel_to_string(LogLevel lev)
         return "UNKNOWN";
     }
 }
+
+} // namespace
 
 // BasicFormatter
 
