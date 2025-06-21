@@ -199,7 +199,7 @@ void Server::_accept()
             continue;
         }
 
-        auto server_sock = std::make_unique<ServerSocket>(ClientSocket, cv_, message_buffer_len_);
+        auto server_sock = std::make_unique<ServerSocket>(ClientSocket, cv_, [this](const std::string &msg) { return _callback(msg); }, message_buffer_len_);
 
         bool reused = false;
         for (auto &ptr : ConnectSockets_) {

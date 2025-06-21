@@ -202,23 +202,23 @@ void add_friend_page(ScreenInteractive &screen, const std::string applicant)
     }
 }
 
-int main() {
-    system("cls");
-    ScreenInteractive screen = ScreenInteractive::TerminalOutput();
-    screen.Clear();
+// int main() {
+//     system("cls");
+//     ScreenInteractive screen = ScreenInteractive::TerminalOutput();
+//     screen.Clear();
 
-    while(true) {
-        int selected = menu_page(screen);
-        if(selected == 1) {
-            chat_page(screen, "裸男");
-        }
-        else if(selected == 0){
-            add_friend_page(screen, "Austin Yang");
-        }
-        else if(selected == -1) {
-            exit(-1);
-        }
-    }
+//     while(true) {
+//         int selected = menu_page(screen);
+//         if(selected == 1) {
+//             chat_page(screen, "裸男");
+//         }
+//         else if(selected == 0){
+//             add_friend_page(screen, "Austin Yang");
+//         }
+//         else if(selected == -1) {
+//             exit(-1);
+//         }
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
