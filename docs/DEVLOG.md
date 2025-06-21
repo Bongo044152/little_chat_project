@@ -107,3 +107,10 @@
   * 新增 cmake 資料夾表示第三方 library
   * 使用 cmake 管理 library
   * 新增正在實驗中的 server 與 client 邏輯 -> 添加到 src 與 include
+
+* Roger 完成了 Programming guide
+* 張宸瑋 完成了 恭迎大周和裸男的 onbording plan: https://www.notion.so/2198413ce7ec806a9ce2f4bc5d23965f
+* 前端 UI 分業實驗完成
+  * menu page 初步實驗成功: 允許自由的下一頁和上一頁
+  * 添加好友初步實驗: 使用 ftxui::Toggle 來當作選擇
+  * 傳送訊息初步實驗: 雖然輸入輸出不是很完美，但是能用
