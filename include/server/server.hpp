@@ -17,6 +17,7 @@
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
+#include <functional>           // for callback function
 
 // windows 的技術債
 #ifndef WIN32_LEAN_AND_MEAN
@@ -49,11 +50,14 @@ public:
      * @brief Construct a ServerSocket for an accepted raw socket.
      * @param connect_socket Underlying SOCKET returned by accept().
      * @param cv Shared condition variable to notify the Server when this client disconnects.
+     * @param callback_function The callback receives a JSON message, and returns true if the message was successfully handled.
+     * ( apply from class Server )
      * @param message_buffer_len Maximum buffer length for send/recv operations (default 1024).
      * @throws std::invalid_argument if parameters are invalid.
      */
     ServerSocket(SOCKET connect_socket,
                 std::shared_ptr<std::condition_variable> cv,
+                std::function<bool(const std::string &)> callback_function,
                 int message_buffer_len = 1024);
 
     /**
@@ -93,6 +97,8 @@ private:
     std::thread recv_thread_;                     ///< Worker thread for receiving events
     std::shared_ptr<std::condition_variable> cv_; ///< Notify Server when disconnect occurs
 
+    std::function<bool(const std::string &)> callback_; ///< function provided by class Server
+
     /**
      * @brief Internal receive loop running in a separate thread.
      * Blocks on recv(), handles incoming data and disconnect events.
@@ -105,7 +111,7 @@ private:
      * Not to be called by external users; used by Server for cleanup.
      */
     void _shutdown();
-};
+};  // end of ServerSocket
 
 
 /**
@@ -172,7 +178,8 @@ private:
 
     std::thread accept_thread_;       ///< Thread running _accept()
     std::shared_ptr<std::condition_variable> cv_{std::make_shared<std::condition_variable>()};
-    std::mutex mtu_;                  ///< Mutex for condition_variable waits
+    std::mutex accept_mtu_;                  ///< Mutex for condition_variable waits
+    std::mutex callback_mtu_;        ///< Mutex for lock callback function
     bool is_run_called{false};        ///< Prevent multiple run() calls
     bool is_shutdown_called{false};   ///< Prevent multiple shutdown calls
 
@@ -191,6 +198,14 @@ private:
      * @return true on error, false on success.
      */
     bool _init();
-};
+
+    /**
+     * @brief Callback function to be called by the ServerSocket.
+     * 
+     * This function is used to handle events that the ServerSocket
+     * cannot process by itself.
+     */
+    bool _callback(const std::string &json);
+}; // end of Server
 
 #endif // _WIN32

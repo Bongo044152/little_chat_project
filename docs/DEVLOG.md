@@ -65,7 +65,6 @@
 
 * 引入新 UI Library：**FTXUI** 改善終端機使用者體驗。
 * Server 端研究非阻塞 socket 解法：
-
   * [參考資料：StackOverflow - 非阻塞 `recv`](https://stackoverflow.com/questions/28636286/can-a-socket-be-made-non-blocking-only-for-the-recv-function)
 
 ---
@@ -101,9 +100,9 @@
     1. ServerSocket 向 Server 做 polling
     2. ServerSocket 做 callback ( Server 提供 callback function ): 對於這個方案，教授建議我們加上 time limit 以免 callback 過程中出現問題
 
-## 🗓️ 6/21：重大更新!
+## 🗓️ 6/21：更新專案架構
 
-* 更改代碼架構
+* 更改專案架構
   * 將 logger 與 queue 獨立到 lib 中
   * 新增 cmake 資料夾表示第三方 library
   * 使用 cmake 管理 library

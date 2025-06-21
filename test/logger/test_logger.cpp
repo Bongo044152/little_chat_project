@@ -2,7 +2,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 
-#include "my_logger.hpp"
+#include "C:\Users\Sakiyago\Desktop\project\lib\logger\include\logger.hpp"
 
 TEST_CASE("Test Doctest") {
     auto logger = LoggerRegistry::instance().get_logger("log");

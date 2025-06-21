@@ -11,10 +11,12 @@
 //------------------------------------------------------------------------------
 
 ServerSocket::ServerSocket(SOCKET connect_socket,
-                        std::shared_ptr<std::condition_variable> cv,
-                        int message_buffer_len)
+                    std::shared_ptr<std::condition_variable> cv,
+                    std::function<bool(const std::string &)> callback_function,
+                    int message_buffer_len)
     : ConnectSocket_(connect_socket),
         cv_(std::move(cv)),
+        callback_(callback_function),
         message_buffer_len_(message_buffer_len)
 {
     if (message_buffer_len_ > 10240) {
@@ -79,13 +81,12 @@ void ServerSocket::_recv_func_async()
 
         if (iResult > 0) {
             // TODO: handle incoming event here
-            // ! dummy for test
-            send_message(buffer.data());
+            send_message(buffer.data());    // ! dummy behavior for test
         }
         else if (iResult == 0) {
             // Connection closed by client
             // TODO: handle graceful disconnect here
-            // ? use callback to notify Server of disconnection ?
+            // * use callback to notify Server of disconnection
         }
         else {
             int err = WSAGetLastError();
@@ -176,7 +177,7 @@ const ServerSocket& Server::get_server_sock(size_t i) const
 
 void Server::_accept()
 {
-    std::unique_lock<std::mutex> lock(mtu_);
+    std::unique_lock<std::mutex> lock(accept_mtu_);
     while (!stop_.load()) {
         // Block when at capacity until a client disconnects
         if (ConnectSockets_.size() >= static_cast<size_t>(max_connections_)) {
@@ -262,6 +263,13 @@ bool Server::_init()
     }
 
     // TODO: logging here (e.g., server start info)
+    return false;
+}
+
+bool Server::_callback(const std::string &json)
+{
+    std::lock_guard<std::mutex> lock(callback_mtu_);
+    // TODO: handel Event here
     return false;
 }
 
