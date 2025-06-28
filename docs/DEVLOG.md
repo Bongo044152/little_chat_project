@@ -22,8 +22,8 @@
   * 解決方案：改良架構，去除「查看不 pop」功能，避免資源競爭。
 
 * 開始實作 logger：
-  * 發現 **Segmentation Fault**。
-  * 使用 `gdb` 除錯，原因是誤引用 `nullptr`。
+  * 發現 **Segmentation Fault**。   -- BUG-001: logger 在 addSink 後觸發了 Segmentation Fault
+  * 使用 `gdb` 除錯，原因是誤引用 `nullptr`。 -- Fix #001: 引用了 `nullptr`
 * 完成 logger 並整理專案架構，首次使用 Git 進行版本控管。
 
 ---
@@ -32,13 +32,13 @@
 
 * Roger 測試 logger 與 queue：
   * **單線程表現良好**，但在 multi-thread 下出現輸出錯誤。
-  * 原因：logger 中 `sink` 等元件未加鎖，導致 race condition。
-  * 檢查到物件的 copy 與 move 並沒有正確地被刪除
+  * 原因：logger 中 `sink` 等元件未加鎖，導致 race condition。  -- BUG-002: logger 的 `sink` 元件寫入文件產生了 race condition
+  * 檢查到物件的 copy 與 move 並沒有正確地被刪除  -- Fix #002: 為 `sink` 上鎖，並且 singletone
   * 已修復並提交 Git。
 
 * 進行 socket 測試：
-  * 發現文字解析錯誤。
-  * 問題原因：buffer 沒有妥善清除，導致殘留資料干擾。
+  * 發現文字解析錯誤。  -- BUG-003: socket 連線時，文字解析錯誤，產生如 � 的亂碼
+  * 問題原因：buffer 沒有妥善清除，導致殘留資料干擾。 -- Fix #003: 儲存字元的 buffer 沒有被妥善清除。
   * 解決方案：改用 `std::vector<char>` 處理傳輸文字，確保清除機制。
 
 ---
@@ -105,7 +105,7 @@
 * 更改專案架構
   * 將 logger 與 queue 獨立到 lib 中
   * 新增 cmake 資料夾表示第三方 library
-  * 使用 cmake 管理 library
+  * 使用 cmake 管理 library，包括 FTXUI
   * 新增正在實驗中的 server 與 client 邏輯 -> 添加到 src 與 include
 
 * Roger 完成了 Programming guide
@@ -114,3 +114,58 @@
   * menu page 初步實驗成功: 允許自由的下一頁和上一頁
   * 添加好友初步實驗: 使用 ftxui::Toggle 來當作選擇
   * 傳送訊息初步實驗: 雖然輸入輸出不是很完美，但是能用
+
+## 🗓️ 6/22：測試連線、思考下一步計畫
+
+* 原本預定晚上測試 VPN 連線，看看延遲等 (參與人員: 張宸瑋、Roger)；簡稱 「VPN 連線測試」
+  結果因為某些因素沒有做。
+  * 進行 VPN 連線之前，張宸瑋 發現了一些 bug: 有些字元解析出現問題，出現 '�'  -- BUG-004: 錯誤的 socket 連線邏輯
+    初步推測是因為內容沒有傳遞完全 -> 存放字元的 `buffer` 有問題
+  * 後來認為是 io 有問題
+  * 最後發現網路連線有問題，`recv` 在不正確的時機接收了自己發送出去的訊息
+
+* 新人引入計畫: 
+  1. 講解專案架構
+  2. 介紹 json 格式，以及它在本專案有什麼用 (socket 傳遞訊息的首選)
+  3. 這個 library 要怎麼用?
+  4. 除錯能力 -> 如何對程式 debug (簡單介紹 vscode: include 路徑問題解決、lunch.json、task.json、怎麼用 vscode 抓 bug)
+  5. 基本多線程概念: https://www.youtube.com/watch?v=4rLW7zg21gI <!-- 需要準備 -->
+  6. 基本 socket 概念: https://www.geeksforgeeks.org/computer-networks/socket-in-computer-network/ <!-- 需要準備 -->
+  7. API 的概念: https://www.geeksforgeeks.org/what-is-an-api/  <!-- 需要準備 -->
+
+* 新人引入計畫: (針對大周)
+  1. 介紹前端近況
+  2. 介紹 FTXUI，以及為什麼我們需要它
+  3. 這個 library 怎麼使用?
+
+* 新人引入計畫: (針對裸男)
+  1. 介紹後端近況、架構
+  2. 介紹工作內容
+  3. 講解 C++ 多線程
+
+* 準備討論議題: 目前小專案遇到的困難
+  * 對話紀錄如何儲存? 要儲存什麼?
+  * 前端如何獲取對話紀錄?
+  * API 要怎麼設計?
+  * 我們要怎麼合作? 文件要怎麼管理? 開會頻率怎麼說?
+  * <font color="red"><b>周思妤不讀訊息的問題</b></font>
+
+## 🗓️ 6/23：修復錯誤、更近 onbording plan
+
+* -- Fix #004: 錯誤的訊息輸出，以及錯誤的傳送訊息邏輯
+  * server 輸出了錯誤的訊息，導致判斷失誤
+  * send 函數的 bufferlen 寫錯
+
+* onbording plan 需要製作一些教材、準備，防止出現問題 ( 張宸瑋 )
+  * 弄個資料夾或者備忘錄
+  * 平時有時間就自己潤稿
+
+## 🗓️ 6/25：添加 git/github 教學 (備案)
+
+* 添加 git/github 的教學: https://www.notion.so/2198413ce7ec806a9ce2f4bc5d23965f
+
+## 🗓️ 6/27：VPN 測試成功
+
+* 測試 VPN 連線成功 (參與者: 張宸瑋 和 Roger)
+  * 能夠正常的收發訊息
+  * 連線沒有明顯的延遲

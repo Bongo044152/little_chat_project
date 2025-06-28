@@ -1,5 +1,5 @@
 // impl for client.hpp
-#include "server/server.hpp"
+#include "server.hpp"
 
 #include <sstream>
 #include <cstring>
@@ -81,7 +81,7 @@ void ServerSocket::_recv_func_async()
 
         if (iResult > 0) {
             // TODO: handle incoming event here
-            send_message(buffer.data());    // ! dummy behavior for test
+            send_message(buffer.data());    // * dummy behavior for test
         }
         else if (iResult == 0) {
             // Connection closed by client

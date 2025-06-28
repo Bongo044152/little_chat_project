@@ -42,6 +42,10 @@ cd build
 ctest --output-on-failure
 ```
 
+## 3. Bug and Issue
+
+1. 你需要為每個 bug 取名稱
+
 ---
 
 > 註：請勿直接在 `build/` 修改任何檔案，該目錄為 CMake 輸出目錄，可隨時清除重建。

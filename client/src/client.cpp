@@ -1,5 +1,5 @@
 // impl for client.hpp
-#include "client/client.hpp"
+#include "client.hpp"
 
 #ifdef _WIN32
 
