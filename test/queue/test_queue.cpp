@@ -4,56 +4,56 @@
 #include "doctest.h"
 
 // -- headers for thread -- //
-#include <thread>
 #include <chrono>
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
+#include <thread>
 
 
-#include <iostream>
 #include <array>
+#include <iostream>
 
 // -- Queue for MT-safe -- //
 #include "thread_safe_queue.hpp"
 
-TEST_CASE("Basic Queue") {
+TEST_CASE("Basic Queue")
+{
     Queue<int> q;
-    std::array<int, 3> arr = {1,2,3};
+    std::array<int, 3> arr = {1, 2, 3};
 
-    SUBCASE("test push") {
+    SUBCASE("test push")
+    {
         try {
             q.push(1);
             q.push(2);
             q.push(3);
-        }
-        catch(const std::exception &e) {
+        } catch (const std::exception &e) {
             std::cerr << e.what() << '\n';
             REQUIRE(false);
-        }
-        catch(...) {
+        } catch (...) {
             REQUIRE(false);
         }
     }
 
-    SUBCASE("test try_pop [FIFO]") {
+    SUBCASE("test try_pop [FIFO]")
+    {
         try {
-            q.push(1); q.push(2); q.push(3);
+            q.push(1);
+            q.push(2);
+            q.push(3);
             int pop_item;
-            for(size_t i=0; i<3; ++i) {
-                if(q.try_pop(pop_item)) {
+            for (size_t i = 0; i < 3; ++i) {
+                if (q.try_pop(pop_item)) {
                     REQUIRE(pop_item == arr[i]);
-                }
-                else {
+                } else {
                     std::cerr << "try_pop falied" << std::endl;
                     REQUIRE(false);
                 }
             }
-        }
-        catch(const std::exception &e) {
+        } catch (const std::exception &e) {
             std::cerr << e.what() << '\n';
             REQUIRE(false);
-        }
-        catch(...) {
+        } catch (...) {
             REQUIRE(false);
         }
     }

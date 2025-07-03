@@ -1,9 +1,9 @@
 // impl for sink.hpp
 
+#include <ctime>    // std::time_t, std::localtime
+#include <iomanip>  // std::put_time
 #include <iostream>
 #include <sstream>
-#include <ctime>        // std::time_t, std::localtime
-#include <iomanip>      // std::put_time
 
 #include <fstream>
 
@@ -17,7 +17,7 @@ void TerminalSink::write(const std::string &message)
     std::cout << message << "\n";
 }
 
-TerminalSink* TerminalSink::get()
+TerminalSink *TerminalSink::get()
 {
     static TerminalSink ts;
     return &ts;
@@ -28,18 +28,19 @@ TerminalSink* TerminalSink::get()
 void FileSink::write(const std::string &message)
 {
     std::lock_guard<std::mutex> lock(mtx_);
-    if(file_.is_open())
+    if (file_.is_open())
         file_ << message << "\n";
 }
 
-FileSink* FileSink::get(const std::string &filename)
+FileSink *FileSink::get(const std::string &filename)
 {
     static std::mutex mtx_;
     static std::unordered_map<std::string, std::unique_ptr<FileSink>> m;
 
     std::lock_guard<std::mutex> lock(mtx_);
-    if(m.find(filename) == m.end()) {
-        m[filename] = std::move(std::unique_ptr<FileSink>(new FileSink(filename)));
+    if (m.find(filename) == m.end()) {
+        m[filename] =
+            std::move(std::unique_ptr<FileSink>(new FileSink(filename)));
     }
     return m.at(filename).get();
 }
@@ -59,8 +60,7 @@ void DailyFileSink::write(const std::string &message)
 {
     std::lock_guard<std::mutex> lock(mtx_);
     std::string today_filename = "logs/" + _get_today_filename();
-    if (today_filename != current_filename_)
-    {
+    if (today_filename != current_filename_) {
         // 日期變了，重新開檔案
         if (ofs_.is_open())
             ofs_.close();
@@ -78,7 +78,7 @@ void DailyFileSink::write(const std::string &message)
     }
 }
 
-DailyFileSink* DailyFileSink::get()
+DailyFileSink *DailyFileSink::get()
 {
     static DailyFileSink d;
     return &d;

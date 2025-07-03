@@ -1,8 +1,8 @@
 // impl for client.hpp
 #include "server.hpp"
 
-#include <sstream>
 #include <cstring>
+#include <sstream>
 
 #ifdef _WIN32
 
@@ -10,14 +10,15 @@
 // ServerSocket Implementation
 //------------------------------------------------------------------------------
 
-ServerSocket::ServerSocket(SOCKET connect_socket,
-                    std::shared_ptr<std::condition_variable> cv,
-                    std::function<bool(const std::string &)> callback_function,
-                    int message_buffer_len)
+ServerSocket::ServerSocket(
+    SOCKET connect_socket,
+    std::shared_ptr<std::condition_variable> cv,
+    std::function<bool(const std::string &)> callback_function,
+    int message_buffer_len)
     : ConnectSocket_(connect_socket),
-        cv_(std::move(cv)),
-        callback_(callback_function),
-        message_buffer_len_(message_buffer_len)
+      cv_(std::move(cv)),
+      callback_(callback_function),
+      message_buffer_len_(message_buffer_len)
 {
     if (message_buffer_len_ > 10240) {
         throw std::invalid_argument("message buffer size must be <= 10240");
@@ -25,14 +26,13 @@ ServerSocket::ServerSocket(SOCKET connect_socket,
     if (ConnectSocket_ == INVALID_SOCKET) {
         throw std::invalid_argument("Invalid SOCKET provided");
     }
-    if (!cv_) {
+    if (!cv_)
         throw std::invalid_argument("Condition variable pointer is null");
-    }
 
     state.store(State::Connection);
 
     // Launch receive thread immediately
-    recv_thread_ = std::thread([this]{ this->_recv_func_async(); });
+    recv_thread_ = std::thread([this] { this->_recv_func_async(); });
 }
 
 ServerSocket::~ServerSocket()
@@ -42,7 +42,8 @@ ServerSocket::~ServerSocket()
 
 void ServerSocket::send_message(const std::string &message) const
 {
-    if (state.load() != State::Connection) return;
+    if (state.load() != State::Connection)
+        return;
     if (message.size() > message_buffer_len_) {
         // TODO: logging here
         throw std::runtime_error("message too large!");
@@ -62,11 +63,12 @@ void ServerSocket::send_message(const std::string &message) const
 
 void ServerSocket::_shutdown()
 {
-    if (state.load() == State::DisConnection) return;
+    if (state.load() == State::DisConnection)
+        return;
     state.store(State::DisConnection);
     if (ConnectSocket_ != INVALID_SOCKET) {
-        closesocket(ConnectSocket_);        // force shutdown recv function
-        ConnectSocket_ = INVALID_SOCKET;    // Prevent misuse
+        closesocket(ConnectSocket_);      // force shutdown recv function
+        ConnectSocket_ = INVALID_SOCKET;  // Prevent misuse
     }
     if (recv_thread_.joinable()) {
         recv_thread_.join();
@@ -77,20 +79,20 @@ void ServerSocket::_recv_func_async()
 {
     while (state.load() == State::Connection) {
         std::vector<char> buffer(message_buffer_len_);
-        int iResult = recv(ConnectSocket_, buffer.data(), message_buffer_len_, 0);
+        int iResult =
+            recv(ConnectSocket_, buffer.data(), message_buffer_len_, 0);
 
         if (iResult > 0) {
             // TODO: handle incoming event here
-            send_message(buffer.data());    // * dummy behavior for test
-        }
-        else if (iResult == 0) {
+            send_message(buffer.data());  // * dummy behavior for test
+        } else if (iResult == 0) {
             // Connection closed by client
             // TODO: handle graceful disconnect here
             // * use callback to notify Server of disconnection
-        }
-        else {
+        } else {
             int err = WSAGetLastError();
-            if (state.load() != State::Connection) break;
+            if (state.load() != State::Connection)
+                break;
             std::stringstream oss;
             oss << "[Error] recv failed with error: " << err;
             // TODO: logging here
@@ -102,9 +104,10 @@ void ServerSocket::_recv_func_async()
     state.store(State::DisConnection);
     if (ConnectSocket_ != INVALID_SOCKET) {
         closesocket(ConnectSocket_);
-        ConnectSocket_ = INVALID_SOCKET;    // Prevent misuse
+        ConnectSocket_ = INVALID_SOCKET;  // Prevent misuse
     }
-    cv_->notify_one();  // Notify Server that a slot is now free ( notify Server::_aceept )
+    cv_->notify_one();  // Notify Server that a slot is now free ( notify
+                        // Server::_aceept )
 }
 
 //------------------------------------------------------------------------------
@@ -112,13 +115,13 @@ void ServerSocket::_recv_func_async()
 //------------------------------------------------------------------------------
 
 Server::Server(const std::string &server_ip,
-            const std::string &server_port,
-            int max_connections,
-            int message_buffer_len)
+               const std::string &server_port,
+               int max_connections,
+               int message_buffer_len)
     : server_ip_(server_ip),
-    server_port_(server_port),
-    max_connections_(max_connections),
-    message_buffer_len_(message_buffer_len)
+      server_port_(server_port),
+      max_connections_(max_connections),
+      message_buffer_len_(message_buffer_len)
 {
     if (_init()) {
         throw std::runtime_error("Initialization failed");
@@ -133,17 +136,19 @@ Server::~Server()
 void Server::run()
 {
     // avoid called twice
-    if (is_run_called || is_shutdown_called) return;
+    if (is_run_called || is_shutdown_called)
+        return;
     is_run_called = true;
 
     // add thread
-    accept_thread_ = std::thread([this]{ _accept(); });
+    accept_thread_ = std::thread([this] { _accept(); });
 }
 
 void Server::shutdown()
 {
     // avoid called twice
-    if (is_shutdown_called && !is_run_called) return;
+    if (is_shutdown_called && !is_run_called)
+        return;
     is_shutdown_called = true;
 
     stop_.store(true);
@@ -151,7 +156,7 @@ void Server::shutdown()
 
     if (ListenSocket_ != INVALID_SOCKET) {
         closesocket(ListenSocket_);
-        ListenSocket_ = INVALID_SOCKET; // Prevent misuse
+        ListenSocket_ = INVALID_SOCKET;  // Prevent misuse
     }
 
     // Shutdown each client handler
@@ -167,7 +172,7 @@ void Server::shutdown()
     WSACleanup();
 }
 
-const ServerSocket& Server::get_server_sock(size_t i) const
+const ServerSocket &Server::get_server_sock(size_t i) const
 {
     if (i >= ConnectSockets_.size()) {
         throw std::out_of_range("Client index out of range");
@@ -181,17 +186,21 @@ void Server::_accept()
     while (!stop_.load()) {
         // Block when at capacity until a client disconnects
         if (ConnectSockets_.size() >= static_cast<size_t>(max_connections_)) {
-            cv_->wait(lock, [this]{
-                if (stop_.load()) return true;
+            cv_->wait(lock, [this] {
+                if (stop_.load())
+                    return true;
                 for (const auto &ptr : ConnectSockets_) {
-                    if (ptr->get_state() == ServerSocket::State::DisConnection) {
+                    if (ptr->get_state() ==
+                        ServerSocket::State::DisConnection) {
                         return true;
                     }
                 }
-                return ConnectSockets_.size() < static_cast<size_t>(max_connections_);
+                return ConnectSockets_.size() <
+                       static_cast<size_t>(max_connections_);
             });
         }
-        if (stop_.load()) return;
+        if (stop_.load())
+            return;
 
         SOCKET ClientSocket = accept(ListenSocket_, NULL, NULL);
         if (ClientSocket == INVALID_SOCKET) {
@@ -199,7 +208,10 @@ void Server::_accept()
             continue;
         }
 
-        auto server_sock = std::make_unique<ServerSocket>(ClientSocket, cv_, [this](const std::string &msg) { return _callback(msg); }, message_buffer_len_);
+        auto server_sock = std::make_unique<ServerSocket>(
+            ClientSocket, cv_,
+            [this](const std::string &msg) { return _callback(msg); },
+            message_buffer_len_);
 
         bool reused = false;
         for (auto &ptr : ConnectSockets_) {
@@ -224,31 +236,34 @@ bool Server::_init()
     struct addrinfo *result = nullptr, hints;
     ZeroMemory(&hints, sizeof(hints));
 
-    hints.ai_family = AF_INET;          // IPv4
-    hints.ai_socktype = SOCK_STREAM;    // TCP socket
-    hints.ai_protocol = IPPROTO_TCP;    // TCP protocol
-    hints.ai_flags = AI_PASSIVE;        // For binding
+    hints.ai_family = AF_INET;        // IPv4
+    hints.ai_socktype = SOCK_STREAM;  // TCP socket
+    hints.ai_protocol = IPPROTO_TCP;  // TCP protocol
+    hints.ai_flags = AI_PASSIVE;      // For binding
 
-    int iResult = WSAStartup(MAKEWORD(2,2), &wsaData_);
+    int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData_);
     if (iResult != 0) {
         // TODO: logging here
         return true;
     }
 
-    iResult = getaddrinfo(server_ip_.c_str(), server_port_.c_str(), &hints, &result);
+    iResult =
+        getaddrinfo(server_ip_.c_str(), server_port_.c_str(), &hints, &result);
     if (iResult != 0) {
         // TODO: logging here
         return true;
     }
 
-    ListenSocket_ = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    ListenSocket_ =
+        socket(result->ai_family, result->ai_socktype, result->ai_protocol);
     if (ListenSocket_ == INVALID_SOCKET) {
         // TODO: logging here
         freeaddrinfo(result);
         return true;
     }
 
-    iResult = bind(ListenSocket_, result->ai_addr, static_cast<int>(result->ai_addrlen));
+    iResult = bind(ListenSocket_, result->ai_addr,
+                   static_cast<int>(result->ai_addrlen));
     if (iResult == SOCKET_ERROR) {
         // TODO: logging here
         freeaddrinfo(result);
@@ -273,4 +288,4 @@ bool Server::_callback(const std::string &json)
     return false;
 }
 
-#endif // _WIN32
+#endif  // _WIN32

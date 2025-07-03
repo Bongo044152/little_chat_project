@@ -8,6 +8,19 @@ on:
     branches: ["main"]
 
 jobs:
+
+  clang-format-check:
+    runs-on: ubuntu-latest
+    steps:
+    # https://github.com/marketplace/actions/checkout
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: Run clang-format style check for C/C++/Protobuf programs.
+      uses: jidicula/clang-format-action@v4.15.0
+      with:
+        clang-format-version: '20'
+
   build-project:
     name: Build Project
     runs-on: ubuntu-latest
