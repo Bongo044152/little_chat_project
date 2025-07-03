@@ -45,6 +45,31 @@ void Logger::setLevel(LogLevel lvl)
     lvl_ = lvl;
 }
 
+void Logger::setLevel(int lvl)
+{
+    std::lock_guard<std::mutex> lock(mtx_);
+    switch (lvl) {
+        case 0:
+            lvl_ = LogLevel::Debug;
+            break;
+        case 1:
+            lvl_ = LogLevel::Info;
+            break;
+        case 2:
+            lvl_ = LogLevel::Warning;
+            break;
+        case 3:
+            lvl_ = LogLevel::Error;
+            break;
+        case 4:
+            lvl_ = LogLevel::Critical;
+            break;
+        default:
+            throw std::invalid_argument("0 <= lvl <= 4");
+            break;
+    }
+}
+
 // LoggerRegistry
 
 LoggerRegistry &LoggerRegistry::instance()

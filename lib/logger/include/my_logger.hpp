@@ -91,6 +91,18 @@ public:
      */
     void setLevel(LogLevel lvl);
 
+    /**
+     * @brief Set the minimum log level for message processing using an integer.
+     *
+     * This overload accepts an integer which will be interpreted as a log level.
+     *
+     * @param lvl Integer value representing the minimum log level.
+     *            Must be in the range [0, 4].
+     *
+     * @throws std::invalid_argument if lvl is outside the range [0, 4].
+     */
+    void setLevel(int lvl);
+
     // -- copy trait -- //
 
     Logger(const Logger &) = delete;
