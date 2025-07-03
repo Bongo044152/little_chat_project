@@ -3,6 +3,15 @@
  * @brief Initializes and configures the global logging system.
  */
 
+#include "logger.hpp"
+
+#ifndef LOG_LEVEL
+#error "LOG_LEVEL is needed"
+#endif
+
+#define SET_LOG_LEVEL(logger) \
+    ((logger)->setLevel((LOG_LEVEL)))
+
 /**
  * @brief Initializes the global logger.
  * 
