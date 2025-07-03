@@ -4,7 +4,8 @@
 
 #include "logger.hpp"
 
-TEST_CASE("Test Doctest") {
+TEST_CASE("Test Doctest")
+{
     auto logger = LoggerRegistry::instance().get_logger("log");
     logger->setLevel(LogLevel::Debug);
     logger->addSink(TerminalSink::get());

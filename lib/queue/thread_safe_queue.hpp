@@ -2,10 +2,10 @@
 #pragma once
 
 // -- headers for thread -- //
-#include <thread>
 #include <chrono>
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
+#include <thread>
 
 // queue
 #include <queue>
@@ -16,10 +16,11 @@
 // queue for MT-safe
 /**
  * @brief Thread-safe queue version
- * 
- * NOTE: Always call shutdown() or rely on destructor to wake up waiting threads.
+ *
+ * NOTE: Always call shutdown() or rely on destructor to wake up waiting
+ * threads.
  */
-template<typename T>
+template <typename T>
 class Queue
 {
 public:
@@ -28,27 +29,30 @@ public:
     // Construct a new Queue object.
     Queue() = default;
 
-    // Destruct the Queue object and ensure waiting threads are awakened. ( for safe quit )
+    // Destruct the Queue object and ensure waiting threads are awakened. ( for
+    // safe quit )
     /// NOTE: Calls shutdown() to notify all waiting threads.
     ~Queue() { shutdown(); }
 
     // -- copy trait -- //
 
-    // Disable copy construction to prevent copying of mutex and condition variable.
+    // Disable copy construction to prevent copying of mutex and condition
+    // variable.
     Queue(const Queue &other) = delete;
 
     // -- move trait -- //
 
     // Disable move construction due to mutex.
-    Queue(Queue&&) = delete;
+    Queue(Queue &&) = delete;
 
     // Disable move assignment due to mutex.
-    Queue& operator=(Queue&&) = delete;
+    Queue &operator=(Queue &&) = delete;
 
     // -- basic getter method -- //
 
     /**
-     * @brief Pop a value from the queue, blocking until an element is available or shutdown is called.
+     * @brief Pop a value from the queue, blocking until an element is available
+     * or shutdown is called.
      *
      * @param[out] out_ Reference to store the popped value.
      * @return true if a value was popped, false if shutdown be called.
@@ -62,9 +66,10 @@ public:
      * @tparam Period_ Period type for duration (e.g., std::milli).
      * @param timeout_  Maximum duration to wait for an element.
      * @param[out] out_ Reference to store the popped value if available.
-     * @return true if a value was popped within timeout, false on timeout or shutdown.
+     * @return true if a value was popped within timeout, false on timeout or
+     * shutdown.
      */
-    template<typename Rep_, typename Period_>
+    template <typename Rep_, typename Period_>
     bool pop_for(const std::chrono::duration<Rep_, Period_> &timeout_, T &out_);
 
     /**
@@ -79,7 +84,7 @@ public:
      * @brief Push a new value into the queue and notify one waiting thread.
      *
      * @param item_ The value to be pushed into the queue.
-     * 
+     *
      * NOTE: Not blocking; always fast path.
      */
     void push(const T &item_);
@@ -94,10 +99,10 @@ public:
     void shutdown();
 
 private:
-    std::mutex mtx_;               // muti-thread lock : prevent race condition
-    std::queue<T> my_queue_;       // queue from standard library
-    std::condition_variable cv_;   // for conditional wait behavior
-    bool stop_ = false;            // flag for safe quit
+    std::mutex mtx_;              // muti-thread lock : prevent race condition
+    std::queue<T> my_queue_;      // queue from standard library
+    std::condition_variable cv_;  // for conditional wait behavior
+    bool stop_ = false;           // flag for safe quit
 };
 
 // -- impl part -- //
@@ -106,9 +111,10 @@ template <typename T>
 inline bool Queue<T>::pop(T &out_)
 {
     std::unique_lock<std::mutex> lk(mtx_);
-    cv_.wait(lk, [this]{ return stop_ || !my_queue_.empty(); });
+    cv_.wait(lk, [this] { return stop_ || !my_queue_.empty(); });
 
-    if (stop_) return false; // for safe quit
+    if (stop_)
+        return false;  // for safe quit
 
     out_ = std::move(my_queue_.front());
     my_queue_.pop();
@@ -116,14 +122,18 @@ inline bool Queue<T>::pop(T &out_)
 }
 
 template <typename T>
-template<typename Rep_, typename Period_>
-inline bool Queue<T>::pop_for(const std::chrono::duration<Rep_, Period_> &timeout_, T &out_)
+template <typename Rep_, typename Period_>
+inline bool Queue<T>::pop_for(
+    const std::chrono::duration<Rep_, Period_> &timeout_,
+    T &out_)
 {
     std::unique_lock<std::mutex> lk(mtx_);
-    if (!cv_.wait_for(lk, timeout_, [this] { return stop_ || !my_queue_.empty(); }))
+    if (!cv_.wait_for(lk, timeout_,
+                      [this] { return stop_ || !my_queue_.empty(); }))
         return false;  // timeout
-    
-    if (stop_) return false; // for safe quit
+
+    if (stop_)
+        return false;  // for safe quit
 
     out_ = std::move(my_queue_.front());
     my_queue_.pop();
@@ -134,7 +144,8 @@ template <typename T>
 inline bool Queue<T>::try_pop(T &out_)
 {
     std::lock_guard<std::mutex> lk(mtx_);
-    if (stop_ || my_queue_.empty()) return false; // for safe quit
+    if (stop_ || my_queue_.empty())
+        return false;  // for safe quit
     out_ = std::move(my_queue_.front());
     my_queue_.pop();
     return true;

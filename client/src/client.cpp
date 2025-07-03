@@ -3,16 +3,18 @@
 
 #ifdef _WIN32
 
+#include <cstring>
 #include <iostream>
 #include <sstream>
-#include <cstring>
 
 // Implementation of CilentSocket methods
 
 CilentSocket::CilentSocket(const std::string &server_ip,
-                            const std::string &server_port,
-                            int message_buffer_len = 1024)
-    : server_ip_(server_ip), server_port_(server_port), message_buffer_len_(message_buffer_len)
+                           const std::string &server_port,
+                           int message_buffer_len = 1024)
+    : server_ip_(server_ip),
+      server_port_(server_port),
+      message_buffer_len_(message_buffer_len)
 {
     // invalid configuration
     if (message_buffer_len_ > 10240) {
@@ -23,12 +25,14 @@ CilentSocket::CilentSocket(const std::string &server_ip,
     }
 }
 
-CilentSocket::~CilentSocket() {
+CilentSocket::~CilentSocket()
+{
     if (recv_thread_.joinable())
         stop();
 }
 
-void CilentSocket::send_message(const std::string &message) {
+void CilentSocket::send_message(const std::string &message)
+{
     // message payload check
     if (static_cast<int>(message.size()) > message_buffer_len_) {
         throw std::runtime_error("message too large!");
@@ -47,27 +51,33 @@ void CilentSocket::send_message(const std::string &message) {
     }
 }
 
-Queue<std::string>& CilentSocket::get_message_queue() {
+Queue<std::string> &CilentSocket::get_message_queue()
+{
     return q_;
 }
 
-void CilentSocket::register_after_send(std::function<void()> cb) {
+void CilentSocket::register_after_send(std::function<void()> cb)
+{
     after_send_callbacks_.push_back(std::move(cb));
 }
 
-void CilentSocket::register_after_receive(std::function<void(const std::string&)> cb) {
+void CilentSocket::register_after_receive(
+    std::function<void(const std::string &)> cb)
+{
     after_receive_callbacks_.push_back(std::move(cb));
 }
 
-void CilentSocket::run() {
+void CilentSocket::run()
+{
     // Launch background receive thread
-    recv_thread_ = std::thread([this]{ this->_recv_func_async(); });
+    recv_thread_ = std::thread([this] { this->_recv_func_async(); });
 }
 
-void CilentSocket::stop() {
+void CilentSocket::stop()
+{
     // signal thread to stop
     stop_.store(true);
-    
+
     // close the socket to unblock recv
     if (ConnectSocket_ != INVALID_SOCKET) {
         closesocket(ConnectSocket_);
@@ -79,49 +89,50 @@ void CilentSocket::stop() {
     // wait for thread to finish
     if (recv_thread_.joinable())
         recv_thread_.join();
-    
+
     // cleanup Winsock
     WSACleanup();
 }
 
-void CilentSocket::_recv_func_async() {
+void CilentSocket::_recv_func_async()
+{
     try {
         while (!stop_.load()) {
             // vector auto-manages char buffer
             std::vector<char> buffer(message_buffer_len_);
-            int iResult = recv(ConnectSocket_, buffer.data(), message_buffer_len_, 0);
+            int iResult =
+                recv(ConnectSocket_, buffer.data(), message_buffer_len_, 0);
 
             if (iResult > 0) {
                 // push received data into queue
                 q_.push(std::string(buffer.data(), iResult));
                 std::string message = buffer.data();
-                for(size_t i=0; i<after_receive_callbacks_.size(); ++i) {
+                for (size_t i = 0; i < after_receive_callbacks_.size(); ++i) {
                     after_receive_callbacks_[i](message);
                 }
-            }
-            else if (iResult == 0) {
+            } else if (iResult == 0) {
                 // connection closed gracefully
                 q_.push("[Info] Connection closed by server");
                 break;
-            }
-            else {
+            } else {
                 int err = WSAGetLastError();
-                if (stop_.load()) break;
+                if (stop_.load())
+                    break;
 
                 std::stringstream oss;
                 oss << "[Error] recv failed with error: " << err;
-                q_.push(oss.str()); // cannot throw in thread
+                q_.push(oss.str());  // cannot throw in thread
                 break;
             }
         }
-    }
-    catch (const std::exception &e) {
+    } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
         q_.push(std::string("[Error] ") + e.what());
     }
 }
 
-bool CilentSocket::_init() {
+bool CilentSocket::_init()
+{
     // enable UTF-8 for console output (Chinese/emoji support)
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
@@ -142,7 +153,8 @@ bool CilentSocket::_init() {
 
     struct addrinfo *result = nullptr;
     // Resolve server address and port
-    iResult = getaddrinfo(server_ip_.c_str(), server_port_.c_str(), &hints, &result);
+    iResult =
+        getaddrinfo(server_ip_.c_str(), server_port_.c_str(), &hints, &result);
     if (iResult != 0) {
         std::cerr << "getaddrinfo failed with error: " << iResult << std::endl;
         WSACleanup();
@@ -150,18 +162,22 @@ bool CilentSocket::_init() {
     }
 
     // Create socket
-    ConnectSocket_ = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    ConnectSocket_ =
+        socket(result->ai_family, result->ai_socktype, result->ai_protocol);
     if (ConnectSocket_ == INVALID_SOCKET) {
-        std::cerr << "socket creation failed: " << WSAGetLastError() << std::endl;
+        std::cerr << "socket creation failed: " << WSAGetLastError()
+                  << std::endl;
         freeaddrinfo(result);
         WSACleanup();
         return false;
     }
 
     // Connect to server
-    iResult = connect(ConnectSocket_, result->ai_addr, static_cast<int>(result->ai_addrlen));
+    iResult = connect(ConnectSocket_, result->ai_addr,
+                      static_cast<int>(result->ai_addrlen));
     if (iResult == SOCKET_ERROR) {
-        std::cerr << "connect failed with error: " << WSAGetLastError() << std::endl;
+        std::cerr << "connect failed with error: " << WSAGetLastError()
+                  << std::endl;
         closesocket(ConnectSocket_);
         freeaddrinfo(result);
         WSACleanup();
@@ -172,4 +188,4 @@ bool CilentSocket::_init() {
     return true;
 }
 
-#endif // _WIN32
+#endif  // _WIN32

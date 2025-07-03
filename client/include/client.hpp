@@ -2,8 +2,9 @@
 
 /**
  * @file cilent.hpp
- * @brief Declaration of the CilentSocket class for Windows-based socket client communication.
- *        Provides asynchronous receive functionality and thread-safe message queuing.
+ * @brief Declaration of the CilentSocket class for Windows-based socket client
+ * communication. Provides asynchronous receive functionality and thread-safe
+ * message queuing.
  *
  * @note  Need to link with Ws2_32.lib, Mswsock.lib, AdvApi32.lib
  */
@@ -15,8 +16,8 @@
 #include <string>
 #include <vector>
 
-#include <thread>
 #include <atomic>
+#include <thread>
 
 #include <functional>
 
@@ -24,8 +25,8 @@
 
 // windows 的技術債
 #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
-#endif
+#define WIN32_LEAN_AND_MEAN
+#endif  // WIN32_LEAN_AND_MEAN
 
 // Windows-specific headers
 #include <winsock2.h>
@@ -33,14 +34,17 @@
 
 /**
  * @class CilentSocket
- * @brief A simple Windows-based TCP client socket with asynchronous receive thread.
+ * @brief A simple Windows-based TCP client socket with asynchronous receive
+ * thread.
  *
  * Manages a background thread to receive messages into a thread-safe queue.
  * Allows sending fixed-size messages and clean shutdown.
- * 
- * @note You must manually call run() after construction to start the receive thread.
+ *
+ * @note You must manually call run() after construction to start the receive
+ * thread.
  */
-class CilentSocket {
+class CilentSocket
+{
 public:
     // -- constructor and destructor -- //
 
@@ -52,11 +56,12 @@ public:
      * @throws std::runtime_error if buffer size > 10240 or socket init fails
      */
     CilentSocket(const std::string &server_ip,
-                    const std::string &server_port,
-                    int message_buffer_len);
+                 const std::string &server_port,
+                 int message_buffer_len);
 
     /**
-     * @brief Destructor: ensures clean shutdown of the receive thread and socket.
+     * @brief Destructor: ensures clean shutdown of the receive thread and
+     * socket.
      */
     ~CilentSocket();
 
@@ -96,31 +101,39 @@ public:
 
     /// @brief Register a callback to be called after receiving a message.
     /// @param cb : callback function
-    void register_after_receive(std::function<void(const std::string&)> cb);
+    void register_after_receive(std::function<void(const std::string &)> cb);
 
     // getter ( function vector )
 
-    std::vector<std::function<void()>>& get_after_send_functions() { return after_send_callbacks_; }
-    std::vector<std::function<void(const std::string&)>>& get_after_recive_functions() { return after_receive_callbacks_; }
+    std::vector<std::function<void()>> &get_after_send_functions()
+    {
+        return after_send_callbacks_;
+    }
+    std::vector<std::function<void(const std::string &)>> &
+    get_after_recive_functions()
+    {
+        return after_receive_callbacks_;
+    }
 
     // -- disable copy and move trait -- //
 
     CilentSocket(const CilentSocket &) = delete;
-    CilentSocket& operator=(const CilentSocket &) = delete;
+    CilentSocket &operator=(const CilentSocket &) = delete;
     CilentSocket(CilentSocket &&) = delete;
-    CilentSocket& operator=(CilentSocket &&) = delete;
+    CilentSocket &operator=(CilentSocket &&) = delete;
 
 private:
     // -- member variables -- //
 
     // variable ( MT-safe )
-    Queue<std::string> q_;          // Queue for incoming messages ( MT-safe )
-    std::atomic<bool> stop_{false}; // bool for stopping the thread ( MT-safe )
+    Queue<std::string> q_;           // Queue for incoming messages ( MT-safe )
+    std::atomic<bool> stop_{false};  // bool for stopping the thread ( MT-safe )
 
     // Server connection parameters
-    std::string server_ip_;         // server's ip
-    std::string server_port_;       // server's open port
-    int message_buffer_len_;        // message/string buffer size ( both send and receive )
+    std::string server_ip_;    // server's ip
+    std::string server_port_;  // server's open port
+    int message_buffer_len_;   // message/string buffer size ( both send and
+                               // receive )
 
     // Receive thread handle
     std::thread recv_thread_;
@@ -131,14 +144,17 @@ private:
 
     // callback function
     std::vector<std::function<void()>> after_send_callbacks_;
-    std::vector<std::function<void(const std::string&)>> after_receive_callbacks_;
-    // std::vector<std::function<void(const std::string&)>> before_send_callbacks_;
-    // std::vector<std::function<void()>> before_receive_callbacks_;
+    std::vector<std::function<void(const std::string &)>>
+        after_receive_callbacks_;
+    // std::vector<std::function<void(const std::string&)>>
+    // before_send_callbacks_; std::vector<std::function<void()>>
+    // before_receive_callbacks_;
 
     // -- helper function -- //
 
     /**
-     * @brief Internal initialization: Sets up Winsock, resolves address, connects socket.
+     * @brief Internal initialization: Sets up Winsock, resolves address,
+     * connects socket.
      * @return true on success, false on failure (check via exceptions or logs)
      */
     bool _init();
@@ -149,4 +165,4 @@ private:
     void _recv_func_async();
 };
 
-#endif // _WIN32
+#endif  // _WIN32
