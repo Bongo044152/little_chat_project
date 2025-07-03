@@ -53,7 +53,7 @@ jobs:
       - name: Upload Result
         uses: actions/upload-artifact@v4
         with:
-          name: build.zip
+          name: build
           path: ./build.zip
 
   test_project:
@@ -65,16 +65,17 @@ jobs:
       - name: Donload build archive
         uses: actions/download-artifact@v4
         with:
-          name: build.zip
+          name: build
 
       - name: Unzip Folder
+      # sudo apt update
+      # sudo apt install unzip -y
         run: |
-          sudo apt update
-          sudo apt install unzip -y
-          unzip build.zip -d build
+          unzip build.zip
 
+      # https://github.com/marketplace/actions/get-cmake
       - name: Setup Cmake
-        run: sudo apt install cmake -y
+        uses: lukka/get-cmake@latest
       
       - name: Start Testing
         run: |

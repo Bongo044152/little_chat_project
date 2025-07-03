@@ -52,8 +52,12 @@ endif()
 # ──────────────────────────────────────────────────────────────
 
 add_subdirectory(lib)
-add_subdirectory(client)
-add_subdirectory(server)
+if(WIN32)
+    add_subdirectory(client)
+    add_subdirectory(server)
+else()
+    message(STATUS "You are not on a Windows platform. The main application (client/server) will not be built. Only libraries or tests will be processed.")
+endif()
 
 # ──────────────────────────────────────────────────────────────
 #  Enable tests if requested
