@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+"""
+Git commit hook：
+   1. 提交訊息不可為空
+   2. 第一行需包含 “:” 標籤前綴
+   3. 每行最多 60 字
+"""
+
+import subprocess
+import sys
+import os
+import shutil
+
+def main():
+    validate_commit_msg()
+    return 0
+
+def validate_commit_msg():
+    """驗證提交訊息格式"""
+    msg_file = os.path.join('.git', 'COMMIT_EDITMSG')
+    if not os.path.isfile(msg_file):
+        return
+    with open(msg_file, 'r') as f:
+        lines = [l.rstrip('\n') for l in f]
+
+    # 檢查非空與冒號標籤
+    if not lines or not lines[0].strip():
+        print("❌ 提交訊息為空，請輸入提交訊息。")
+        sys.exit(1)
+    if ':' not in lines[0]:
+        print("❌ 提交訊息第一行需包含 ':' 標籤前綴，例如 'feat: 新增功能'。")
+        sys.exit(1)
+
+    # 檢查每行長度
+    for idx, line in enumerate(lines):
+        if len(line) > 60:
+            if line[0] == "#": continue
+            print(f"❌ 提交訊息第 {idx} 行超過 60 字（目前 {len(line)} 字）。")
+            print("違反行數的提交訊息: " + f"\"{line}\"")
+            sys.exit(1)
+    print("✓ 提交訊息格式檢查通過。")
+
+if __name__ == '__main__':
+    sys.exit(main())

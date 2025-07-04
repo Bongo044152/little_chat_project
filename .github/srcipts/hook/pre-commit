@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""
+Git pre-commit hook：
+1. 使用 clang-format 檢測 C/C++ 檔案格式（--dry-run, -Werror）
+2. 對暫存檔案執行 cppcheck
+"""
+
+import subprocess
+import sys
+import os
+import shutil
+
+
+def main():
+    # 確認必要工具存在
+    check_tools(['clang-format', 'cppcheck'])
+
+    # 取得暫存檔案列表
+    staged = get_staged_files()
+    if not staged:
+        print("沒有暫存檔案需要檢查。")
+        return 0
+
+    # 執行格式檢查與靜態分析
+    check_clang_format(staged)
+    run_cppcheck(staged)
+    return 0
+
+
+def check_tools(tools):
+    """確認每個工具都在 PATH 中"""
+    for tool in tools:
+        if shutil.which(tool) is None:
+            print(f"❌ 未在 PATH 中找到必要工具 '{tool}'。請安裝後重試。")
+            sys.exit(1)
+
+
+def get_staged_files():
+    """取得新增/修改/複製的暫存檔案"""
+    proc = subprocess.run(
+        ['git', 'diff', '--cached', '--name-only', '--diff-filter=ACM'],
+        stdout=subprocess.PIPE,
+        text=True,
+        check=True
+    )
+    return [f.strip() for f in proc.stdout.splitlines()]
+
+
+def check_clang_format(files):
+    """使用 clang-format 檢查並可選擇自動格式化"""
+    exts = ('.c', '.cpp', '.cc', '.cxx', '.h', '.hpp')
+    for f in files:
+        if not f.endswith(exts) or not os.path.isfile(f):
+            continue
+        proc = subprocess.run(
+            ['clang-format', '--dry-run', '-Werror', f],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        if proc.returncode != 0:
+            print(f"❌ clang-format 檢測失敗：{f}")
+            msg = proc.stderr.strip() or proc.stdout.strip()
+            print(msg)
+            print("提交已中止：請手動格式化檔案。")
+            sys.exit(1)
+
+
+def run_cppcheck(files):
+    """對 C/C++ 檔案執行 cppcheck 檢查"""
+    exts = ('.c', '.cpp', '.cc', '.cxx', '.h', '.hpp')
+    to_check = [f for f in files if f.endswith(exts)]
+    if not to_check:
+        return
+    cmd = ['cppcheck', '--quiet', "-D _WIN32", "--error-exitcode=1"] + to_check
+    proc = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    if proc.stderr or proc.stdout:
+        print(proc.stdout)
+        print(proc.stderr)
+        print("❌ cppcheck 檢測出問題")
+        print("提交不會終止，但是你需要自己注意")
+
+
+if __name__ == '__main__':
+    sys.exit(main())
