@@ -21,6 +21,41 @@ jobs:
       with:
         clang-format-version: '20'
 
+  cppcheck:
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/marketplace/actions/checkout
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      # https://github.com/marketplace/actions/cppcheck-action
+      - name: Run Cppcheck
+        uses: deep5050/cppcheck-action@v3.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          enable: warning
+          std: c++17
+          other_options: -D _WIN32 -DLOG_LEVEL=0
+          output_file: result.txt
+          inconclusive: disable
+
+      # https://github.com/marketplace/actions/upload-a-build-artifact
+      - name: Upload Result
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cppcheck_result
+          path: ./result.txt
+
+      - name: Fail if Cppcheck found issues
+        run: |
+          if grep -q . result.txt; then
+            echo "❌ Cppcheck found issues:"
+            cat result.txt
+            exit 1
+          else
+            echo "✅ Cppcheck clean."
+          fi
+
   build-project:
     name: Build Project
     runs-on: ubuntu-latest
@@ -81,8 +116,6 @@ jobs:
           name: build
 
       - name: Unzip Folder
-      # sudo apt update
-      # sudo apt install unzip -y
         run: |
           unzip build.zip
 
