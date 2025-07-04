@@ -67,3 +67,6 @@ ctest --output-on-failure
 * 一個 commit message 只允許有 1 個 tag，如果有很多個 tag，分次提交會比較好
 * `tag` 只寫一個主要目的，必要時可在詳細描述列出副作用
 * 在 PR 內文中可再補充更多上下文或關聯的 issue / PR
+
+## 4. commit message 規範 ( 非強制，討論中.. )
+參閱: https://blog.louie.lu/2017/03/21/%E5%A6%82%E4%BD%95%E5%AF%AB%E4%B8%80%E5%80%8B-git-commit-message/
